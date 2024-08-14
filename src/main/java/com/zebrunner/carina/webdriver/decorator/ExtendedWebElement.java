@@ -1411,11 +1411,15 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
             Object... inputArgs) {
         clearElementState();
 
-        if (waitCondition != null) {
-            // do verification only if waitCondition is not null
-            if (!waitUntil(waitCondition, timeout)) {
-                // TODO: think about raising exception otherwise we do extra call and might wait and hangs especially for mobile/appium
-                LOGGER.error(Messager.ELEMENT_CONDITION_NOT_VERIFIED.getMessage(actionName.getKey(), getNameWithLocator()));
+        try {
+            this.element = findElement();
+        } catch (StaleElementReferenceException | NoSuchElementException e) {
+            if (waitCondition != null) {
+                // do verification only if waitCondition is not null
+                if (!waitUntil(waitCondition, timeout)) {
+                    // TODO: think about raising exception otherwise we do extra call and might wait and hangs especially for mobile/appium
+                    LOGGER.error(Messager.ELEMENT_CONDITION_NOT_VERIFIED.getMessage(actionName.getKey(), getNameWithLocator()));
+                }
             }
         }
 
@@ -1427,7 +1431,8 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
         Object output = null;
 
         try {
-            this.element = findElement();
+            if (this.element == null)
+                this.element = findElement();
             output = overrideAction(actionName, inputArgs);
         } catch (StaleElementReferenceException e) {
             // TODO: analyze mobile testing for staled elements. Potentially it should be fixed by appium java client already
