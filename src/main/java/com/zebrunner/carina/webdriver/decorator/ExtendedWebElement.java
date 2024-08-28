@@ -671,6 +671,13 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
     }
 
     /**
+     * Click on an element with no wait
+     */
+    public void clickNoWait() {
+        doAction(ACTION_NAME.CLICK, Duration.ofSeconds(0), null);
+    }
+
+    /**
      * Click on element
      *
      * @param timeout timeout, in seconds
