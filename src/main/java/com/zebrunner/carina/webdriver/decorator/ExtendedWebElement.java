@@ -1413,7 +1413,9 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
 
         if (waitCondition != null) {
             // do verification only if waitCondition is not null
-            if (!waitUntil(waitCondition, timeout)) {
+            // no time is saved by josh's change here, this is a consequence of other code
+            ExtendedWebElement e = waitUntil(waitCondition, timeout);
+            if (e == null) {
                 // TODO: think about raising exception otherwise we do extra call and might wait and hangs especially for mobile/appium
                 LOGGER.error(Messager.ELEMENT_CONDITION_NOT_VERIFIED.getMessage(actionName.getKey(), getNameWithLocator()));
             }
@@ -1720,14 +1722,16 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
         if (loadingStrategy == ElementLoadingStrategy.BY_PRESENCE || loadingStrategy == ElementLoadingStrategy.BY_PRESENCE_OR_VISIBILITY) {
             if (element != null) {
                 conditions.add(
-                        new ExpectedCondition<Boolean>() {
+                        // no time is saved by josh's change here
+                        //   we are returning an ExpectedCondition<EWE> instead of a ExpectedCondition<boolean>
+                        new ExpectedCondition<ExtendedWebElement>() {
                             @Override
-                            public Boolean apply(WebDriver ignored) {
+                            public ExtendedWebElement apply(WebDriver ignored) {
                                 try {
                                     // Calling any method forces a staleness check
-                                    return element.isDisplayed();
+                                    return new ExtendedWebElement(element, name, by);
                                 } catch (StaleElementReferenceException expected) {
-                                    return false;
+                                    return null;
                                 }
                             }
 
@@ -1768,6 +1772,8 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
 
         List<WebElement> elements = searchContext.findElements(by);
         if (elements.isEmpty()) {
+            // TODO: think about raising exception otherwise we do extra call and might wait and hangs especially for mobile/appium
+            LOGGER.error(SpecialKeywords.NO_SUCH_ELEMENT_ERROR + this.by.toString() + "named" + getNameWithLocator());
             throw new NoSuchElementException(SpecialKeywords.NO_SUCH_ELEMENT_ERROR + this.by.toString());
         }
         if (elements.size() > 1) {

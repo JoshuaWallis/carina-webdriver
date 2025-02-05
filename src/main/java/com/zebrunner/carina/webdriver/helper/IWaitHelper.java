@@ -3,6 +3,7 @@ package com.zebrunner.carina.webdriver.helper;
 import com.zebrunner.carina.utils.config.Configuration;
 import com.zebrunner.carina.webdriver.IDriverPool;
 import com.zebrunner.carina.webdriver.config.WebDriverConfiguration;
+import com.zebrunner.carina.webdriver.decorator.ExtendedWebElement;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -29,11 +30,11 @@ public interface IWaitHelper extends IDriverPool {
      * @param timeout {@link Duration}
      * @return true if condition happen
      */
-    default boolean waitUntil(ExpectedCondition<?> condition, long timeout) {
+    default ExtendedWebElement waitUntil(ExpectedCondition<?> condition, long timeout) {
         return waitUntil(condition, Duration.ofSeconds(timeout));
     }
 
-    default boolean waitUntil(ExpectedCondition<?> condition, Duration timeout) {
+    default ExtendedWebElement waitUntil(ExpectedCondition<?> condition, Duration timeout) {
         return waitUntil(condition, timeout, getDefaultWaitInterval(timeout));
     }
 
@@ -44,7 +45,7 @@ public interface IWaitHelper extends IDriverPool {
      * @param timeout {@link Duration}
      * @return true if condition happen
      */
-    default boolean waitUntil(ExpectedCondition<?> condition, Duration timeout, Duration interval) {
+    default ExtendedWebElement waitUntil(ExpectedCondition<?> condition, Duration timeout, Duration interval) {
         // try to use better tickMillis clock
         Wait<WebDriver> wait = new WebDriverWait(getDriver(), timeout, interval,
                 java.time.Clock.tickMillis(java.time.ZoneId.systemDefault()), Sleeper.SYSTEM_SLEEPER)
@@ -64,12 +65,11 @@ public interface IWaitHelper extends IDriverPool {
         // added explicit .withTimeout(Duration.ofSeconds(timeout));
 
         I_WAIT_HELPER_LOGGER.debug("waitUntil: starting... timeout: {}", timeout);
-        boolean res = false;
+        ExtendedWebElement ewe = null;
         long startMillis = 0;
         try {
             startMillis = System.currentTimeMillis();
-            wait.until(condition);
-            res = true;
+            ewe = (ExtendedWebElement) wait.until(condition);
         } catch (TimeoutException e) {
             I_WAIT_HELPER_LOGGER.debug("waitUntil: org.openqa.selenium.TimeoutException", e);
         } finally {
@@ -80,7 +80,8 @@ public interface IWaitHelper extends IDriverPool {
                         getDefaultWaitInterval(timeout));
             }
         }
-        return res;
+        // returning an EWE instead of a bool seems like it'd help, but because of how Carina works, it doesn't help
+        return ewe;
     }
 
     default Duration getDefaultWaitTimeout() {

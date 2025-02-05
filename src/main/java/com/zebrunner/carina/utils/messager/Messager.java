@@ -104,6 +104,7 @@ public enum Messager implements IMessager {
     UNEXPECTED_ELEMENT_WITH_TEXT_PRESENT("FAIL: unexpected element '%s' with text '%s' present!"),
 
     ELEMENT_CLICKED("Element '%s' is clicked."),
+    ELEMENT_ABOUT_TO_CLICK("Trying to click '%s'."),
 
     ELEMENT_NOT_CLICKED("FAIL: element '%s' is not clicked!"),
 

@@ -419,11 +419,14 @@ public interface IExtendedWebElementHelper extends IDriverPool, IWaitHelper {
     default ExtendedWebElement findExtendedWebElement(final By by, String name, long timeout) {
         DriverListener.setMessages(Messager.ELEMENT_FOUND.getMessage(name), Messager.ELEMENT_NOT_FOUND.getMessage(name));
 
-        if (!waitUntil(ExpectedConditions.presenceOfElementLocated(by), timeout)) {
+        // no time is saved by josh's change here
+        //   because in the original code, the call to new EWE() takes no time.
+        //   Either way there is only 1 call to Appium (in the waitUntil)
+        ExtendedWebElement element = waitUntil(ExpectedConditions.presenceOfElementLocated(by), timeout);
+        if (element == null) {
             Messager.ELEMENT_NOT_FOUND.error(name);
             return null;
         }
-        ExtendedWebElement element = new ExtendedWebElement(getDriver(), getDriver());
         element.setBy(by);
         element.setName(name);
         return element;
