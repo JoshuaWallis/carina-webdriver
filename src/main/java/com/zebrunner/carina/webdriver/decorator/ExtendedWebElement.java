@@ -1419,6 +1419,9 @@ public class ExtendedWebElement implements IWebElement, WebElement, IExtendedWeb
         clearElementState();
 
         try {
+            // this turns out to be a bad idea.
+            //   Someone passed in a waitCondition, we must honor it.
+            //   If someone wants to pass in a null waitCondition, they can do that
             this.element = findElement();
         } catch (StaleElementReferenceException | NoSuchElementException e) {
             if (waitCondition != null) {
